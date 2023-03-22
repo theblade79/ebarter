@@ -1,0 +1,73 @@
+  "suggest": {
+    "movie-suggest": {
+      "prefix": "diese",
+      "completion": {
+        "field": "cast"
+      }
+    }
+  }
+  
+  
+  GET search-movie2-alias/_search
+{
+ "query": {
+    "wildcard": {
+      "description": {
+        "value": "*inve*"
+      }
+    }
+  }
+}
+
+
+
+
+GET search-movie2-alias/_search?pretty
+{
+  "suggest": {
+    "title-suggest": {
+      "prefix": "asia",
+      "completion": {
+        "field": "cast",
+        "skip_duplicates": true
+      }
+    }
+  }
+}
+
+
+
+GET my-index-000004/_search
+{
+  "query": {
+    "match": {
+      "title": {
+        "query": "ameri", 
+        "operator": "and"
+      }
+    }
+  },
+  "highlight": {
+    "fields": {
+      "title": {}
+    }
+  }
+}
+
+
+GET my-index-000004/_search
+{
+  "query": {
+    "match": {
+      "title": {
+        "query": "ameri", 
+        "operator": "and"
+      }
+    }
+  },
+  "highlight": {
+    "fields": {
+      "title": {}
+    }
+  }
+}
