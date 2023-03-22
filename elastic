@@ -1,49 +1,90 @@
-  "suggest": {
-    "movie-suggest": {
-      "prefix": "diese",
-      "completion": {
-        "field": "cast"
+ 
+
+
+PUT my-index-4
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "autocomplete": {
+          "tokenizer": "autocomplete",
+          "filter": [
+            "lowercase"
+          ]
+        },
+        "autocomplete_search": {
+          "type" : "custom",
+          "tokenizer": "keyword",
+          "filter": "lowercase"
+        }
+      },
+      "tokenizer": {
+        "autocomplete": {
+          "type": "edge_ngram",
+          "min_gram": 1,
+          "max_gram": 10,
+          "token_chars": [
+             "letter","digit"
+          ]
+        }
       }
     }
-  }
-  
-  
-  GET search-movie2-alias/_search
-{
- "query": {
-    "wildcard": {
-      "description": {
-        "value": "*inve*"
-      }
-    }
-  }
-}
-
-
-
-
-GET search-movie2-alias/_search?pretty
-{
-  "suggest": {
-    "title-suggest": {
-      "prefix": "asia",
-      "completion": {
-        "field": "cast",
-        "skip_duplicates": true
-      }
-    }
-  }
-}
-
-
-
-GET my-index-000004/_search
-{
-  "query": {
-    "match": {
+  },
+  "mappings": {
+    "properties": {
       "title": {
-        "query": "ameri", 
-        "operator": "and"
+        "type": "text",
+        "fields": {
+        "raw": {
+          "type": "keyword"
+        }
+      },
+        "analyzer": "autocomplete",
+        "search_analyzer": "autocomplete_search"
+      }
+    }
+  }
+}
+
+
+PUT my-index-4/_doc/10
+{
+  "title": "C'era una volta in America" 
+}
+
+PUT my-index-000006/_doc/2
+{
+  "title": "C'era una volta in America 2" 
+}
+
+
+PUT my-index-4/_doc/3
+{
+  "title": "C'era una volta in America 3" 
+}
+
+PUT my-index-4/_doc/4
+{
+  "title": "C'era una volta in America 3" 
+}
+
+
+PUT my-index-4/_doc/69
+{
+  "title": "iPhone mini" 
+}
+
+
+POST my-index-000006/_refresh
+
+
+
+GET /my-index-4/_search
+{
+  "aggs": {
+    "my-agg-name": {
+      "terms": {
+        "field": "title.raw"
       }
     }
   },
@@ -55,13 +96,53 @@ GET my-index-000004/_search
 }
 
 
-GET my-index-000004/_search
+
+GET /_analyze
 {
+  "tokenizer": "standard",
+  "filter": [ "stop" ],
+  "text": "c'era una volta in america"
+}
+
+
+
+GET my-index-4/_search
+{
+  
   "query": {
     "match": {
       "title": {
-        "query": "ameri", 
-        "operator": "and"
+        "query": "iphone" 
+      }
+    }
+  }, 
+//  "aggs":{
+//      "dedup_title":{
+//         "top_hits":{ 
+//    		     "highlight": {
+//                "fields": {
+//                  "title": {}
+//                }
+//             } 
+//              
+//           }
+//         }
+//       },
+ "aggs": {
+    "title-aggregation": {
+      "terms": {
+        "field": "title.raw"
+      },"aggs": {
+        "title-top-hits": {
+          "top_hits": {
+            "highlight": {
+               "fields": {
+                  "title": {}
+                }
+            }, 
+            "size": 1
+          }
+        }
       }
     }
   },
