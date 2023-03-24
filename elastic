@@ -69,9 +69,9 @@ PUT my-index-4/_doc/4
 }
 
 
-PUT my-index-4/_doc/69
+PUT my-index-4/_doc/83
 {
-  "title": "iPhone mini" 
+  "title": "iPhone 14 Pro Max 256gb" 
 }
 
 
@@ -131,16 +131,30 @@ GET my-index-4/_search
  "aggs": {
     "title-aggregation": {
       "terms": {
-        "field": "title.raw"
+        "field": "title.raw",
+        "order": {
+          "latestOrder": "desc"
+        }
       },"aggs": {
         "title-top-hits": {
           "top_hits": {
+            "size": 1,
+            "sort": {
+              "title.raw": "desc"
+            },
             "highlight": {
                "fields": {
                   "title": {}
                 }
-            }, 
-            "size": 1
+            }
+          }
+        }, "latestOrder": { 
+          "max": {
+            //"script": "_score"
+            "script": {
+                  "lang": "painless",
+                  "source": "_score"
+             }
           }
         }
       }
@@ -152,3 +166,24 @@ GET my-index-4/_search
     }
   }
 }
+
+
+
+POST _analyze
+{ 
+  "tokenizer": "edge_ngram",
+  "analyzer": "autocomplete", 
+  "text": "iPhone 14 pro max"
+}
+
+ GET my-index-4/_search
+ {
+   "aggs": {
+     "NAME": {
+       "terms": {
+         "field": "title.raw",
+         "order": { "_count": "asc" }
+         }
+       }
+     }
+   }
