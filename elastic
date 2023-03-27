@@ -1,0 +1,189 @@
+ 
+
+
+PUT my-index-4
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "autocomplete": {
+          "tokenizer": "autocomplete",
+          "filter": [
+            "lowercase"
+          ]
+        },
+        "autocomplete_search": {
+          "type" : "custom",
+          "tokenizer": "keyword",
+          "filter": "lowercase"
+        }
+      },
+      "tokenizer": {
+        "autocomplete": {
+          "type": "edge_ngram",
+          "min_gram": 1,
+          "max_gram": 10,
+          "token_chars": [
+             "letter","digit"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "title": {
+        "type": "text",
+        "fields": {
+        "raw": {
+          "type": "keyword"
+        }
+      },
+        "analyzer": "autocomplete",
+        "search_analyzer": "autocomplete_search"
+      }
+    }
+  }
+}
+
+
+PUT my-index-4/_doc/10
+{
+  "title": "C'era una volta in America" 
+}
+
+PUT my-index-000006/_doc/2
+{
+  "title": "C'era una volta in America 2" 
+}
+
+
+PUT my-index-4/_doc/3
+{
+  "title": "C'era una volta in America 3" 
+}
+
+PUT my-index-4/_doc/4
+{
+  "title": "C'era una volta in America 3" 
+}
+
+
+PUT my-index-4/_doc/83
+{
+  "title": "iPhone 14 Pro Max 256gb" 
+}
+
+
+POST my-index-000006/_refresh
+
+
+
+GET /my-index-4/_search
+{
+  "aggs": {
+    "my-agg-name": {
+      "terms": {
+        "field": "title.raw"
+      }
+    }
+  },
+  "highlight": {
+    "fields": {
+      "title": {}
+    }
+  }
+}
+
+
+
+GET /_analyze
+{
+  "tokenizer": "standard",
+  "filter": [ "stop" ],
+  "text": "c'era una volta in america"
+}
+
+
+
+GET my-index-4/_search
+{
+  
+  "query": {
+    "match": {
+      "title": {
+        "query": "iphone" 
+      }
+    }
+  }, 
+//  "aggs":{
+//      "dedup_title":{
+//         "top_hits":{ 
+//    		     "highlight": {
+//                "fields": {
+//                  "title": {}
+//                }
+//             } 
+//              
+//           }
+//         }
+//       },
+ "aggs": {
+    "title-aggregation": {
+      "terms": {
+        "field": "title.raw",
+        "order": {
+          "latestOrder": "desc"
+        }
+      },"aggs": {
+        "title-top-hits": {
+          "top_hits": {
+            "size": 1,
+            "sort": {
+              "title.raw": "desc"
+            },
+            "highlight": {
+               "fields": {
+                  "title": {}
+                }
+            }
+          }
+        }, "latestOrder": { 
+          "max": {
+            //"script": "_score"
+            "script": {
+                  "lang": "painless",
+                  "source": "_score"
+             }
+          }
+        }
+      }
+    }
+  },
+  "highlight": {
+    "fields": {
+      "title": {}
+    }
+  }
+}
+
+
+
+POST _analyze
+{ 
+  "tokenizer": "edge_ngram",
+  "analyzer": "autocomplete", 
+  "text": "iPhone 14 pro max"
+}
+
+ GET my-index-4/_search
+ {
+   "aggs": {
+     "NAME": {
+       "terms": {
+         "field": "title.raw",
+         "order": { "_count": "asc" }
+         }
+       }
+     }
+   }
