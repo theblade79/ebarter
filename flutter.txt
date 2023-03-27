@@ -17,3 +17,5 @@ C:\dev\FlutterSDK\flutter-sdk\flutter\bin\flutter.bat pub get -v
 set http_proxy=boscomichele:Xfactor_2035@10.47.5.41:8080
 
 set https_proxy=boscomichele:Xfactor_2035@10.45.5.150:8080
+
+git remote set-url origin https://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@github.com/theblade79/ebarter.git
